@@ -2,19 +2,14 @@ package net.planet01.oauthauthorizationserver.security;
 
 import net.planet01.oauthauthorizationserver.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.core.support.LdapContextSource;
-import org.springframework.ldap.filter.EqualsFilter;
-import org.springframework.ldap.filter.Filter;
-import org.springframework.ldap.support.LdapUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,6 +21,9 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     private CustomLdapAuth customLdapAuth;
     @Autowired
     private UserService userService;
+    @Autowired
+    @Lazy
+    RedisTokenStore redisTokenStore;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -45,6 +43,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         if (customLdapAuth.authenticateUser(username,password)) {
             userService.resetFailedAttempts(user.getUser());
+            this.removeOldAccessToken(user.getUsername());
+
             return new UsernamePasswordAuthenticationToken(
                     user.getUsername(),
                     user.getPassword(),
@@ -65,5 +65,9 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     public boolean supports(Class<?> authentication) {
         return UsernamePasswordAuthenticationToken.class
                 .isAssignableFrom(authentication);
+    }
+
+    private void removeOldAccessToken(String username){
+        redisTokenStore.findTokensByClientIdAndUserName("client",username).stream().forEach(x -> redisTokenStore.removeAccessToken(x.getValue()));
     }
 }

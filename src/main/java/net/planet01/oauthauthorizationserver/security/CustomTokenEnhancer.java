@@ -22,7 +22,6 @@ public class CustomTokenEnhancer implements TokenEnhancer {
     @Override
     public OAuth2AccessToken enhance(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
         final Map<String, Object> additionalInfo = new HashMap<>();
-        redisTokenStore.findTokensByClientIdAndUserName("client",authentication.getName()).stream().forEach(x -> redisTokenStore.removeAccessToken(x.getValue()));
         additionalInfo.put("username", authentication.getName());
         additionalInfo.put("authorities", authentication.getAuthorities().stream().map(x->x.getAuthority()).toArray());
         ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);

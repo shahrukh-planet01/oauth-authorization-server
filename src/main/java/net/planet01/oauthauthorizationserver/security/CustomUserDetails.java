@@ -1,8 +1,6 @@
 package net.planet01.oauthauthorizationserver.security;
 
 import net.planet01.oauthauthorizationserver.model.entity.User;
-import net.planet01.oauthauthorizationserver.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

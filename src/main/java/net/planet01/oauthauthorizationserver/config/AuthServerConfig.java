@@ -1,5 +1,6 @@
 package net.planet01.oauthauthorizationserver.config;
 
+import net.planet01.oauthauthorizationserver.security.CustomClientDetailsService;
 import net.planet01.oauthauthorizationserver.security.CustomTokenEnhancer;
 import net.planet01.oauthauthorizationserver.security.EnhancedAuthenticationKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,33 +27,27 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
     RedisConnectionFactory redisConnectionFactory;
     @Autowired
     CustomTokenEnhancer customTokenEnhancer;
+    @Autowired
+    CustomClientDetailsService customClientDetailsService;
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
         endpoints.authenticationManager(authenticationManager)
-                .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST)
+                .allowedTokenEndpointRequestMethods(HttpMethod.POST)
                 .tokenStore(redisTokenStore()) // registering redisTokenStore bean
                 .tokenEnhancer(customTokenEnhancer);
     }
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients.inMemory()
-                .withClient("client")
-                .secret("clientsecret")
-                .authorizedGrantTypes("password")
-                .scopes("read")
-                .and()
-                .withClient("resourceserver")
-                .secret("resourceserversecret");
+        clients.withClientDetails(customClientDetailsService);
     }
     public void configure(AuthorizationServerSecurityConfigurer security) {
-        security.checkTokenAccess
-                ("isAuthenticated()");
+        security.tokenKeyAccess("permitAll()")
+                .checkTokenAccess("isAuthenticated()");
     }
     @Bean
     public RedisTokenStore redisTokenStore() {
         var redisTokenStore = new RedisTokenStore(redisConnectionFactory);
-        redisTokenStore.findTokensByClientIdAndUserName("client","shah").stream().forEach(x -> redisTokenStore.removeAccessToken(x.getValue()));
         redisTokenStore.setAuthenticationKeyGenerator(new EnhancedAuthenticationKeyGenerator());
         return redisTokenStore;
     }
