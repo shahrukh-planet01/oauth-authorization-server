@@ -2,26 +2,26 @@ package net.planet01.oauthauthorizationserver.model.entity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
-@Entity(name = "users")
+@Entity(name = "oauth_user")
+@Table(uniqueConstraints =
+        { @UniqueConstraint(name = "employeeCodeUsernameAndEmail", columnNames = { "employee_code", "username","email" })})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "employee_code",unique=true)
+    @Column(name = "employee_code")
     private String employeeCode;
 
     @Column(name = "name")
     private String name;
 
-    @Column(name = "username",unique=true)
+    @Column(name = "username")
     private String username;
 
-    @Column(name = "email",unique=true)
+    @Column(name = "email")
     private String email;
 
     @Column(name = "created_at")
@@ -44,28 +44,30 @@ public class User {
     @Column(name = "updated_by")
     private String updatedBy;
 
-    @Column(name = "is_enabled",columnDefinition = "boolean default 1")
+    @Column(name = "is_enabled",columnDefinition = "bit default 1")
     private boolean enabled;
 
-    @Column(name = "account_non_locked",columnDefinition = "boolean default 1")
-    private boolean accountNonLocked;
+    @Column(name = "is_account_locked",columnDefinition = "bit default 1")
+    private boolean accountLocked;
 
     @Column(name = "failed_attempt",columnDefinition = "integer default 0")
     private int failedAttempt;
 
+    @Column(name = "is_temporary_user",columnDefinition = "bit default 0")
+    private boolean temporaryUser;
+
+    @Column(name = "temporary_access_expire_date",nullable = true)
+    private LocalDateTime temporaryAccessExpireDate;
+
     @Column(name = "lock_time",nullable = true)
     private LocalDateTime lockTime;
 
-    public boolean isAccountNonLocked() {
-        return accountNonLocked;
-    }
-
     public boolean isAccountLocked() {
-        return !accountNonLocked;
+        return accountLocked;
     }
 
-    public void setAccountNonLocked(boolean accountNonLocked) {
-        this.accountNonLocked = accountNonLocked;
+    public void setAccountLocked(boolean accountNonLocked) {
+        this.accountLocked = accountNonLocked;
     }
 
     public int getFailedAttempt() {
@@ -74,6 +76,21 @@ public class User {
 
     public void setFailedAttempt(int failedAttempt) {
         this.failedAttempt = failedAttempt;
+    }
+    public boolean isTemporaryUser() {
+        return temporaryUser;
+    }
+
+    public void setTemporaryUser(boolean temporaryUser) {
+        this.temporaryUser = temporaryUser;
+    }
+
+    public LocalDateTime getTemporaryAccessExpireDate() {
+        return temporaryAccessExpireDate;
+    }
+
+    public void setTemporaryAccessExpireDate(LocalDateTime temporaryAccessExpireDate) {
+        this.temporaryAccessExpireDate = temporaryAccessExpireDate;
     }
 
     public LocalDateTime getLockTime() {
@@ -85,7 +102,7 @@ public class User {
     }
 
     @OneToMany(mappedBy = "user",fetch = FetchType.EAGER)
-    Set<UserHasRole> userHasRole;
+    Set<UserHasRole> roles;
 
     public User() {
     }
@@ -158,12 +175,11 @@ public class User {
         this.updatedBy = updatedBy;
     }
 
-    public Set<UserHasRole> getUserHasRole() {
-        return userHasRole;
+    public Set<UserHasRole> getRoles() {
+        return roles;
     }
 
-    public void setUserHasRole(Set<UserHasRole> userHasRole) {
-        this.userHasRole = userHasRole;
+    public void setRoles(Set<UserHasRole> roles) {
+        this.roles = roles;
     }
-
 }

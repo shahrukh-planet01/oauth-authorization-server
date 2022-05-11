@@ -2,7 +2,6 @@ package net.planet01.oauthauthorizationserver.model.entity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 @Entity(name = "role")
@@ -28,10 +27,10 @@ public class Role {
     private String updatedBy;
 
     @OneToMany(mappedBy = "role",fetch = FetchType.EAGER)
-    Set<RoleHasPermission> roleHasPermissions;
+    Set<RoleHasPermission> permissions;
 
-    @OneToMany(mappedBy = "role",fetch = FetchType.EAGER)
-    Set<UserHasRole> userHasRole;
+//    @OneToMany(mappedBy = "role",fetch = FetchType.EAGER)
+//    Set<UserHasRole> userHasRole;
 
     public Role() {
     }
@@ -80,11 +79,11 @@ public class Role {
         this.updatedBy = updatedBy;
     }
 
-    public Set<RoleHasPermission> getRoleHasPermissions() {
-        return roleHasPermissions;
+    public Set<RoleHasPermission> getPermissions() {
+        return permissions;
     }
 
-    public void setRoleHasPermissions(Set<RoleHasPermission> roleHasPermissions) {
-        this.roleHasPermissions = roleHasPermissions;
+    public void setPermissions(Set<RoleHasPermission> roleHasPermissions) {
+        this.permissions = roleHasPermissions;
     }
 }

@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
@@ -31,11 +33,13 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String password = authentication
                 .getCredentials()
                 .toString();
-
         CustomUserDetails user = customUserDetailService.loadUserByUsername(username);
 
+        if(user.getUser().isTemporaryUser()){
+            checkTemporaryUserAccessExpired(user.getUser().getTemporaryAccessExpireDate());
+        }
+
         if(userService.isAccountLocked(user.getUser())) {
-            System.out.println("lock condition");
             throw new LockedException(
                     String.format("Your account has been locked. It will be unlocked after %d minutes.",userService.remainingLockPeriod(user.getUser().getLockTime()))
             );
@@ -69,5 +73,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     private void removeOldAccessToken(String username){
         redisTokenStore.findTokensByClientIdAndUserName("client",username).stream().forEach(x -> redisTokenStore.removeAccessToken(x.getValue()));
+    }
+    private void checkTemporaryUserAccessExpired(LocalDateTime expireDate) throws LockedException
+    {
+        if(userService.isTemporaryUserAccessExpired(expireDate)){
+            throw new LockedException("Your temporary account access expired.");
+        }
     }
 }

@@ -5,16 +5,17 @@ import java.time.LocalDateTime;
 
 @Entity(name = "user_has_role")
 public class UserHasRole {
-    @EmbeddedId
-    UserRoleKey id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
     @ManyToOne
-    @MapsId("roleId")
     @JoinColumn(name = "role_id",referencedColumnName = "id")
     Role role;
 
     @ManyToOne
-    @MapsId("userId")
     @JoinColumn(name = "user_id",referencedColumnName = "id")
     User user;
 
@@ -31,15 +32,6 @@ public class UserHasRole {
     private String updatedBy;
 
     public UserHasRole() {
-    }
-
-
-    public UserRoleKey getId() {
-        return id;
-    }
-
-    public void setId(UserRoleKey id) {
-        this.id = id;
     }
 
     public Role getRole() {

@@ -35,20 +35,20 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
         endpoints.authenticationManager(authenticationManager)
                 .allowedTokenEndpointRequestMethods(HttpMethod.POST)
                 .tokenStore(redisTokenStore()) // registering redisTokenStore bean
-                .tokenEnhancer(customTokenEnhancer);
+                .tokenEnhancer(customTokenEnhancer); //custom token enhancer to add permissions object in response
     }
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.withClientDetails(customClientDetailsService);
     }
     public void configure(AuthorizationServerSecurityConfigurer security) {
-        security.tokenKeyAccess("permitAll()")
+        security.allowFormAuthenticationForClients().tokenKeyAccess("permitAll()")
                 .checkTokenAccess("isAuthenticated()");
     }
     @Bean
     public RedisTokenStore redisTokenStore() {
         var redisTokenStore = new RedisTokenStore(redisConnectionFactory);
-        redisTokenStore.setAuthenticationKeyGenerator(new EnhancedAuthenticationKeyGenerator());
+        redisTokenStore.setAuthenticationKeyGenerator(new EnhancedAuthenticationKeyGenerator()); //custom key generator to generate new token everytime when user loggedIn
         return redisTokenStore;
     }
 

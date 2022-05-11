@@ -13,8 +13,8 @@ public class Permission {
     @Column(name = "name")
     private String name;
 
-    @OneToMany(mappedBy = "permission")
-    Set<RoleHasPermission> roleHasPermissions;
+    @OneToMany(mappedBy = "permission",fetch = FetchType.EAGER)
+    Set<RoleHasPermission> permissions;
 
     public Permission() {
     }
@@ -27,11 +27,11 @@ public class Permission {
         this.name = name;
     }
 
-    public Set<RoleHasPermission> getRoleHasPermissions() {
-        return roleHasPermissions;
+    public Set<RoleHasPermission> getPermissions() {
+        return permissions;
     }
 
-    public void setRoleHasPermissions(Set<RoleHasPermission> roleHasPermissions) {
-        this.roleHasPermissions = roleHasPermissions;
+    public void setPermissions(Set<RoleHasPermission> roleHasPermissions) {
+        this.permissions = roleHasPermissions;
     }
 }

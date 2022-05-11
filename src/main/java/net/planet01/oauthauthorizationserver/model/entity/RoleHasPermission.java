@@ -6,16 +6,16 @@ import java.time.LocalDateTime;
 @Entity(name = "role_has_permission")
 public class RoleHasPermission {
 
-    @EmbeddedId
-    RolePermissionKey id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
     @ManyToOne
-    @MapsId("roleId")
     @JoinColumn(name = "role_id",referencedColumnName = "id")
     Role role;
 
     @ManyToOne
-    @MapsId("permissionId")
     @JoinColumn(name = "permission_id",referencedColumnName = "id")
     Permission permission;
 
@@ -32,15 +32,6 @@ public class RoleHasPermission {
     private String updatedBy;
 
     public RoleHasPermission() {
-    }
-
-
-    public RolePermissionKey getId() {
-        return id;
-    }
-
-    public void setId(RolePermissionKey id) {
-        this.id = id;
     }
 
     public Role getRole() {

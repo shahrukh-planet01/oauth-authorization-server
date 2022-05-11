@@ -11,23 +11,26 @@ import java.util.Collection;
 import java.util.List;
 
 public class CustomUserDetails implements UserDetails {
+
     private final User user;
+
     public CustomUserDetails(User user) {
         this.user = user;
     }
+
     public final User getUser() {
         return user;
     }
+
     @Override
     @Transactional
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> simpleGrantedAuthorities = new ArrayList<>();
-        user.getUserHasRole().stream().forEach(
-                x -> x.getRole().getRoleHasPermissions().stream().forEach(
+        user.getRoles().stream().forEach(
+                x -> x.getRole().getPermissions().stream().forEach(
                         a -> simpleGrantedAuthorities.add(new SimpleGrantedAuthority(a.getPermission().getName()))
                 )
         );
-
         return simpleGrantedAuthorities;
     }
 
@@ -48,11 +51,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return user.isAccountNonLocked();
-    }
-
-    public boolean isAccountLocked() {
-        return user.isAccountLocked();
+        return !user.isAccountLocked();
     }
 
     @Override
