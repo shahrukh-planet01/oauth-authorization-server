@@ -34,19 +34,32 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
                 .getCredentials()
                 .toString();
         CustomUserDetails user = customUserDetailService.loadUserByUsername(username);
-
+        //check user is enabled
+        if(!user.getUser().isEnabled()) {
+            throw new LockedException(
+                    String.format("Your account has been disabled. Please contact to respective department.")
+            );
+        }
+        //check user is temporary and also check user access expiry
         if(user.getUser().isTemporaryUser()){
             checkTemporaryUserAccessExpired(user.getUser().getTemporaryAccessExpireDate());
         }
-
+        //check user is freezed
+        if(userService.isAccountFreezed(user.getUser())){
+            throw new LockedException(
+                    String.format("Your account has been freezed. Please contact to respective department.")
+            );
+        }
+        //check is user account lock because of many failed attempts
         if(userService.isAccountLocked(user.getUser())) {
             throw new LockedException(
                     String.format("Your account has been locked. It will be unlocked after %d minutes.",userService.remainingLockPeriod(user.getUser().getLockTime()))
             );
         }
-
+        //authenticating user from LDAP server
         if (customLdapAuth.authenticateUser(username,password)) {
             userService.resetFailedAttempts(user.getUser());
+            userService.updateLastLoginDate(user.getUser());
             this.removeOldAccessToken(user.getUsername());
 
             return new UsernamePasswordAuthenticationToken(
@@ -54,15 +67,16 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
                     user.getPassword(),
                     user.getAuthorities());
         }
+        //increase failed attempts
         int failedAttempts = userService.increaseFailedAttempts(user.getUser());
-
+        //lock user account if applicable
         if(userService.lockIfApplicable(user.getUser(),failedAttempts)) {
             throw new LockedException(
                     String.format("Your account has been locked. It will be unlocked after %d minutes.",userService.remainingLockPeriod(user.getUser().getLockTime()))
             );
         }
-
-        throw new UsernameNotFoundException("Invalid Username or password.");
+        //throw exception
+        throw new UsernameNotFoundException("Invalid username or password.");
     }
 
     @Override
@@ -74,6 +88,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     private void removeOldAccessToken(String username){
         redisTokenStore.findTokensByClientIdAndUserName("client",username).stream().forEach(x -> redisTokenStore.removeAccessToken(x.getValue()));
     }
+
     private void checkTemporaryUserAccessExpired(LocalDateTime expireDate) throws LockedException
     {
         if(userService.isTemporaryUserAccessExpired(expireDate)){

@@ -1,6 +1,7 @@
 package net.planet01.oauthauthorizationserver.model.entity;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -30,14 +31,6 @@ public class User {
     @Column(name = "created_by")
     private String createdBy;
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -62,6 +55,26 @@ public class User {
     @Column(name = "lock_time",nullable = true)
     private LocalDateTime lockTime;
 
+    @Column(name = "last_login_date",nullable = true)
+    private LocalDate lastLoginDate;
+
+    @Column(name = "is_admin",columnDefinition = "bit default 0")
+    private boolean isAdmin;
+
+    @OneToMany(mappedBy = "user",fetch = FetchType.EAGER)
+    Set<UserHasRole> roles;
+
+    public User() {
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public boolean isAccountLocked() {
         return accountLocked;
     }
@@ -77,6 +90,7 @@ public class User {
     public void setFailedAttempt(int failedAttempt) {
         this.failedAttempt = failedAttempt;
     }
+
     public boolean isTemporaryUser() {
         return temporaryUser;
     }
@@ -99,12 +113,6 @@ public class User {
 
     public void setLockTime(LocalDateTime lockTime) {
         this.lockTime = lockTime;
-    }
-
-    @OneToMany(mappedBy = "user",fetch = FetchType.EAGER)
-    Set<UserHasRole> roles;
-
-    public User() {
     }
 
     public Long getId() {
@@ -175,6 +183,22 @@ public class User {
         this.updatedBy = updatedBy;
     }
 
+    public LocalDate getLastLoginDate() {
+        return lastLoginDate;
+    }
+
+    public void setLastLoginDate(LocalDate lastLoginDate) {
+        this.lastLoginDate = lastLoginDate;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
+
     public Set<UserHasRole> getRoles() {
         return roles;
     }
@@ -182,4 +206,6 @@ public class User {
     public void setRoles(Set<UserHasRole> roles) {
         this.roles = roles;
     }
+
+
 }

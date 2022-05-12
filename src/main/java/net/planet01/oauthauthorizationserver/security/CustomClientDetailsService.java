@@ -17,9 +17,9 @@ import java.util.function.Supplier;
 public class CustomClientDetailsService implements ClientDetailsService {
 
     @Autowired
-    ClientRepository clientRepository;
+    private ClientRepository clientRepository;
     @Value("${oauth.access.token.validity.seconds}")
-    Integer accessTokenValiditySeconds;
+    private Integer accessTokenValiditySeconds;
 
     @Override
     public ClientDetails loadClientByClientId(String s) throws ClientRegistrationException {

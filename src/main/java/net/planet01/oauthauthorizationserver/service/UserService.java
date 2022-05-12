@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -18,6 +19,7 @@ public class UserService {
 
     public static final int MAX_FAILED_ATTEMPTS = 6;
     private static final long LOCK_TIME_DURATION = 30; //30 minutes
+    private static final long ACCOUNT_FREEZE_DAYS_COUNT = 90; //30 minutes
 
     @Autowired
     private UserRepository userRepository;
@@ -85,4 +87,22 @@ public class UserService {
         }
         return false;
     }
+
+    public void updateLastLoginDate(User user) {
+        user.setLastLoginDate(LocalDate.now());
+        userRepository.save(user);
+    }
+
+    public boolean isAccountFreezed(User user) {
+        if(user.getLastLoginDate() == null){
+            return false;
+        }
+        LocalDate currentDate = LocalDate.now();
+        long daysBetween = Duration.between(user.getLastLoginDate().atStartOfDay(),currentDate.atStartOfDay()).toDays();
+        if(daysBetween >= ACCOUNT_FREEZE_DAYS_COUNT){
+            return true;
+        }
+        return false;
+    }
+
 }
